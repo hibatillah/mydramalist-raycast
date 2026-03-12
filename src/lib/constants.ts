@@ -1,5 +1,12 @@
-export const WATCHLIST_STATUS = [
-  { title: "Currently Watching", value: "currently-watching" },
+import { WatchlistFilter } from "./types";
+
+interface WatchlistStatus {
+  title: string;
+  value: WatchlistFilter;
+}
+
+export const WATCHLIST_STATUS: WatchlistStatus[] = [
+  { title: "Currently Watching", value: "watching" },
   { title: "Completed", value: "completed" },
   { title: "On Hold", value: "on-hold" },
   { title: "Dropped", value: "dropped" },
@@ -37,3 +44,11 @@ export const RATE_ASPECTS = [
   { title: "OST", value: "ost" },
   { title: "Visual FX", value: "visualfx" },
 ];
+
+export const GRID_LAYOUT_SIZE = {
+  small: 6,
+  medium: 5,
+  large: 4,
+};
+
+export const PAGE_SIZE = 20;

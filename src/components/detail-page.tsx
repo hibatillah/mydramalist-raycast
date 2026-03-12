@@ -1,21 +1,65 @@
-import { Action, ActionPanel, Detail } from "@raycast/api";
-import { Drama } from "../utils/types";
+import {
+  Action,
+  ActionPanel,
+  Detail,
+  getPreferenceValues,
+  Icon,
+  Keyboard,
+} from "@raycast/api";
+import { Drama } from "../lib/types";
+import { DetailProgress } from "./detail-progress";
+
+function ItemActions({ data }: { data: Drama }) {
+  const preferences = getPreferenceValues<Preferences>();
+  const primaryAction = preferences.detailPrimaryAction;
+
+  const priorityActions = {
+    "open-in-browser": (
+      <Action.OpenInBrowser title="Open in Browser" url={data.link} />
+    ),
+    "add-to-watchlist": (
+      <Action.Push
+        icon={Icon.PlusCircle}
+        title="Add to Watchlist"
+        target={<DetailProgress data={data} />}
+      />
+    ),
+  };
+
+  const orderedPriorityActions = (
+    Object.keys(priorityActions) as (keyof typeof priorityActions)[]
+  )
+    .toSorted((a, b) =>
+      a === primaryAction ? -1 : b === primaryAction ? 1 : 0,
+    )
+    .map((k) => priorityActions[k]);
+
+  return (
+    <ActionPanel>
+      {orderedPriorityActions}
+      <ActionPanel.Section>
+        <Action.CopyToClipboard
+          title="Copy Page Link"
+          content={data.link}
+          shortcut={Keyboard.Shortcut.Common.Copy}
+        />
+        <Action.CopyToClipboard title="Copy Title" content={data.title} />
+      </ActionPanel.Section>
+    </ActionPanel>
+  );
+}
 
 export function DetailDrama({ data }: { data: Drama }) {
   const markdown = `
   # ${data.title}
 
-  Ratings: ${data.score}
+  Ratings: ${data.score ?? "N/A"}\n
+  Ranked: ${data.ranked ? `#${data.ranked}` : "N/A"}\n
+  Popularity: ${data.popularity ? `#${data.popularity}` : "N/A"}\n
+  Watchers: ${data.watchers ?? "N/A"}\n
+  Cast: ${data.cast.slice(0, 6).join(", ") ?? "N/A"}
 
-  Ranked: #${data.ranked}
-
-  Popularity: #${data.popularity}
-
-  Watchers: ${data.watchers}
-
-  Cast: ${data.cast.slice(0, 6).join(", ")}
-
-  ${data.description}
+  ${data.description ?? "No description available"}
   `;
 
   return (
@@ -72,22 +116,7 @@ export function DetailDrama({ data }: { data: Drama }) {
           )}
         </Detail.Metadata>
       }
-      actions={
-        <ActionPanel>
-          <Action.OpenInBrowser title="Open in Browser" url={data.link} />
-          <Action.CopyToClipboard title="Copy Page Link" content={data.link} />
-          {data.externalLink && data.externalLink.length > 0 && (
-            <ActionPanel.Section>
-              {data.externalLink.map((item) => (
-                <Action.OpenInBrowser
-                  title={`Open in ${item.title}`}
-                  url={item.link}
-                />
-              ))}
-            </ActionPanel.Section>
-          )}
-        </ActionPanel>
-      }
+      actions={<ItemActions data={data} />}
     />
   );
 }

@@ -1,24 +1,111 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "my-drama-list",
-  "title": "My Drama List",
+  "title": "MyDramaList",
   "description": "Search and manage drama watchlist",
   "icon": "extension-icon.png",
   "license": "MIT",
+  "preferences": [
+    {
+      "name": "gridLayoutSize",
+      "title": "Grid Layout Size",
+      "description": "Size of the grid layout",
+      "type": "dropdown",
+      "required": false,
+      "default": "medium",
+      "data": [
+        {
+          "title": "Medium",
+          "value": "medium"
+        },
+        {
+          "title": "Large",
+          "value": "large"
+        }
+      ]
+    },
+    {
+      "name": "detailPrimaryAction",
+      "title": "Detail Page Primary Action",
+      "description": "Primary action on detail page",
+      "type": "dropdown",
+      "required": true,
+      "default": "open-in-browser",
+      "data": [
+        {
+          "title": "Open in Browser",
+          "value": "open-in-browser"
+        },
+        {
+          "title": "Add to Watchlist",
+          "value": "add-to-watchlist"
+        }
+      ]
+    },
+    {
+      "name": "apiKey",
+      "title": "API Key",
+      "description": "Optional: Needed to view and manage your watchlist",
+      "type": "password",
+      "required": false,
+      "default": "",
+      "placeholder": "Enter your MyDramaList API key"
+    }
+  ],
   "commands": [
     {
       "name": "search-drama",
       "title": "Search Drama",
       "description": "Search drama, actor and actress provided by MyDramaList",
       "mode": "view",
-      "subtitle": "Search drama name, actor and actress"
+      "subtitle": "Search drama name, actor and actress",
+      "preferences": [
+        {
+          "name": "searchViewLayout",
+          "title": "Search View Layout",
+          "description": "View layout for search results",
+          "type": "dropdown",
+          "required": false,
+          "default": "list",
+          "data": [
+            {
+              "title": "List View",
+              "value": "list"
+            },
+            {
+              "title": "Grid View",
+              "value": "grid"
+            }
+          ]
+        }
+      ]
     },
     {
-      "name": "my-watchlist",
-      "title": "My Watchlist",
+      "name": "manage-watchlist",
+      "title": "Manage Watchlist",
       "description": "Manage your watchlist in MyDramaList",
       "mode": "view",
-      "subtitle": "Manage watchlist"
+      "subtitle": "Manage watchlist",
+      "preferences": [
+        {
+          "name": "watchlistViewLayout",
+          "title": "Watchlist View Layout",
+          "description": "View layout for watchlist",
+          "type": "dropdown",
+          "required": false,
+          "default": "list",
+          "data": [
+            {
+              "title": "List View",
+              "value": "list"
+            },
+            {
+              "title": "Grid View",
+              "value": "grid"
+            }
+          ]
+        }
+      ]
     }
   ],
   "dependencies": {

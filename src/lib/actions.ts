@@ -1,7 +1,12 @@
 import { Alert, confirmAlert, showToast, Toast } from "@raycast/api";
-import { Drama } from "../utils/types";
+import { Drama, ProgressForm } from "./types";
+import { sleep } from "./utils";
 
-export default async function removeFromWatchlist(data: Drama) {
+export async function updateProgress(values: ProgressForm) {
+  await sleep();
+}
+
+export async function removeFromWatchlist(data: Drama) {
   const options: Alert.Options = {
     title: `Remove your watchlist?`,
     message: `Remove ${data.title} from your watchlist?`,
@@ -15,7 +20,7 @@ export default async function removeFromWatchlist(data: Drama) {
 
         try {
           // mutation
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await sleep();
 
           toast.style = Toast.Style.Success;
           toast.title = "Removed from watchlist";
