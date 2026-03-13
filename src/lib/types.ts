@@ -1,5 +1,40 @@
 import { Image } from "@raycast/api";
 
+export type DaysOfWeek =
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday"
+  | "sunday";
+
+export type Country =
+  | "south-korea"
+  | "japan"
+  | "china"
+  | "hongkong"
+  | "taiwan"
+  | "thailand"
+  | "philippines"
+  | "singapore";
+
+export type MovieType = "drama" | "movie" | "show";
+export type MovieStatus = "ongoing" | "completed" | "upcoming";
+
+export type WatchlistStatus =
+  | "watching"
+  | "completed"
+  | "on-hold"
+  | "dropped"
+  | "plan-to-watch"
+  | "undecided"
+  | "not-interested";
+
+export type SearchFilter = "all" | MovieType | MovieStatus;
+export type WatchlistFilter = "all" | WatchlistStatus;
+export type AiringFilter = "all" | "my-list" | Country;
+
 export interface Drama {
   id: string;
   icon: Image.ImageLike;
@@ -22,6 +57,7 @@ export interface Drama {
   airedOn?: string;
   airedYear?: number;
   originalNetwork?: string;
+  airTime?: string;
   duration?: string;
   score?: number;
   mdlScore?: number;
@@ -45,18 +81,8 @@ export interface ProgressForm {
   notes: string;
 }
 
-export type MovieType = "drama" | "movie" | "show";
-export type MovieStatus = "ongoing" | "completed" | "upcoming";
-
-export type WatchlistStatus =
-  | "watching"
-  | "completed"
-  | "on-hold"
-  | "dropped"
-  | "plan-to-watch"
-  | "undecided"
-  | "not-interested";
-
-export type SearchFilter = "all" | MovieType | MovieStatus;
-
-export type WatchlistFilter = "all" | WatchlistStatus;
+export interface AiringSchedule {
+  day: DaysOfWeek;
+  date: string;
+  dramas: Drama[];
+}

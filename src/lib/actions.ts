@@ -1,9 +1,12 @@
 import { Alert, confirmAlert, showToast, Toast } from "@raycast/api";
 import { Drama, ProgressForm } from "./types";
-import { sleep } from "./utils";
+import { mdlFetch } from "./client";
 
-export async function updateProgress(values: ProgressForm) {
-  await sleep();
+export async function updateProgress(id: string, values: ProgressForm) {
+  await mdlFetch(`/user/watchlist/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(values),
+  });
 }
 
 export async function removeFromWatchlist(data: Drama) {
@@ -19,8 +22,7 @@ export async function removeFromWatchlist(data: Drama) {
         });
 
         try {
-          // mutation
-          await sleep();
+          await mdlFetch(`/user/watchlist/${data.id}`, { method: "DELETE" });
 
           toast.style = Toast.Style.Success;
           toast.title = "Removed from watchlist";

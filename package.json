@@ -7,6 +7,14 @@
   "license": "MIT",
   "preferences": [
     {
+      "name": "apiKey",
+      "title": "API Key",
+      "description": "Your MyDramaList API key",
+      "type": "password",
+      "required": true,
+      "placeholder": "Enter your MyDramaList API key"
+    },
+    {
       "name": "gridLayoutSize",
       "title": "Grid Layout Size",
       "description": "Size of the grid layout",
@@ -29,7 +37,7 @@
       "title": "Detail Page Primary Action",
       "description": "Primary action on detail page",
       "type": "dropdown",
-      "required": true,
+      "required": false,
       "default": "open-in-browser",
       "data": [
         {
@@ -41,15 +49,6 @@
           "value": "add-to-watchlist"
         }
       ]
-    },
-    {
-      "name": "apiKey",
-      "title": "API Key",
-      "description": "Optional: Needed to view and manage your watchlist",
-      "type": "password",
-      "required": false,
-      "default": "",
-      "placeholder": "Enter your MyDramaList API key"
     }
   ],
   "commands": [
@@ -62,8 +61,8 @@
       "preferences": [
         {
           "name": "searchViewLayout",
-          "title": "Search View Layout",
-          "description": "View layout for search results",
+          "title": "Search Layout",
+          "description": "Layout for search results",
           "type": "dropdown",
           "required": false,
           "default": "list",
@@ -89,8 +88,8 @@
       "preferences": [
         {
           "name": "watchlistViewLayout",
-          "title": "Watchlist View Layout",
-          "description": "View layout for watchlist",
+          "title": "Watchlist Layout",
+          "description": "Layout for watchlist",
           "type": "dropdown",
           "required": false,
           "default": "list",
@@ -106,6 +105,13 @@
           ]
         }
       ]
+    },
+    {
+      "name": "airing-calendar",
+      "title": "Airing Calendar",
+      "description": "View airing schedule of dramas",
+      "mode": "view",
+      "subtitle": "View airing schedule of dramas"
     }
   ],
   "dependencies": {

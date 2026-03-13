@@ -18,43 +18,33 @@ import { sleep } from "./lib/utils";
 
 type SetFiltering = (filtering: SearchFilter) => void;
 
-function ListFilter({ setFiltering }: { setFiltering: SetFiltering }) {
-  return (
-    <List.Dropdown
-      tooltip="Filter Search"
-      onChange={(value) => setFiltering(value as SearchFilter)}>
-      <List.Dropdown.Item value="all" title="All" />
-      <List.Dropdown.Section title="Type">
-        <List.Dropdown.Item value="drama" title="Drama" />
-        <List.Dropdown.Item value="movie" title="Movie" />
-        <List.Dropdown.Item value="show" title="TV Show" />
-      </List.Dropdown.Section>
-      <List.Dropdown.Section title="Status">
-        <List.Dropdown.Item value="ongoing" title="Ongoing" />
-        <List.Dropdown.Item value="completed" title="Completed" />
-        <List.Dropdown.Item value="upcoming" title="Upcoming" />
-      </List.Dropdown.Section>
-    </List.Dropdown>
-  );
-}
+function FilterDropdown({
+  layout,
+  setFiltering,
+}: {
+  layout: "list" | "grid";
+  setFiltering: SetFiltering;
+}) {
+  const Comp = layout === "grid" ? Grid : List;
 
-function GridFilter({ setFiltering }: { setFiltering: SetFiltering }) {
   return (
-    <Grid.Dropdown
+    <Comp.Dropdown
       tooltip="Filter Search"
-      onChange={(value) => setFiltering(value as SearchFilter)}>
-      <Grid.Dropdown.Item value="all" title="All" />
-      <Grid.Dropdown.Section title="Type">
-        <Grid.Dropdown.Item value="drama" title="Drama" />
-        <Grid.Dropdown.Item value="movie" title="Movie" />
-        <Grid.Dropdown.Item value="show" title="TV Show" />
-      </Grid.Dropdown.Section>
-      <Grid.Dropdown.Section title="Status">
-        <Grid.Dropdown.Item value="ongoing" title="Ongoing" />
-        <Grid.Dropdown.Item value="completed" title="Completed" />
-        <Grid.Dropdown.Item value="upcoming" title="Upcoming" />
-      </Grid.Dropdown.Section>
-    </Grid.Dropdown>
+      onChange={(value) => setFiltering(value as SearchFilter)}
+      storeValue={false}
+      throttle>
+      <Comp.Dropdown.Item value="all" title="All" />
+      <Comp.Dropdown.Section title="Type">
+        <Comp.Dropdown.Item value="drama" title="Drama" />
+        <Comp.Dropdown.Item value="movie" title="Movie" />
+        <Comp.Dropdown.Item value="show" title="TV Show" />
+      </Comp.Dropdown.Section>
+      <Comp.Dropdown.Section title="Status">
+        <Comp.Dropdown.Item value="ongoing" title="Ongoing" />
+        <Comp.Dropdown.Item value="completed" title="Completed" />
+        <Comp.Dropdown.Item value="upcoming" title="Upcoming" />
+      </Comp.Dropdown.Section>
+    </Comp.Dropdown>
   );
 }
 
@@ -76,8 +66,6 @@ function ItemActions({
           icon={Icon.Info}
         />
         <Action.OpenInBrowser title="Open in Browser" url={data.link} />
-      </ActionPanel.Section>
-      <ActionPanel.Section>
         <Action.Push
           title="Add to Watchlist"
           target={<DetailProgress data={data} />}
@@ -89,9 +77,13 @@ function ItemActions({
         <Action.CopyToClipboard
           title="Copy Page Link"
           content={data.link}
-          shortcut={Keyboard.Shortcut.Common.Copy}
+          shortcut={Keyboard.Shortcut.Common.CopyPath}
         />
-        <Action.CopyToClipboard title="Copy Title" content={data.title} />
+        <Action.CopyToClipboard
+          title="Copy Title"
+          content={data.title}
+          shortcut={Keyboard.Shortcut.Common.CopyName}
+        />
       </ActionPanel.Section>
       <ActionPanel.Section>
         <Action
@@ -157,7 +149,9 @@ export default function Command() {
       aspectRatio="3/4"
       columns={GRID_LAYOUT_SIZE[gridSize]}
       searchBarPlaceholder={placeholder}
-      searchBarAccessory={<GridFilter setFiltering={setFiltering} />}
+      searchBarAccessory={
+        <FilterDropdown layout="grid" setFiltering={setFiltering} />
+      }
       selectedItemId={selectedId ?? undefined}
       onSelectionChange={(value) => setSelectedId(value ?? "")}
       onSearchTextChange={setSearchText}
@@ -191,7 +185,9 @@ export default function Command() {
     <List
       isLoading={isLoading}
       searchBarPlaceholder={placeholder}
-      searchBarAccessory={<ListFilter setFiltering={setFiltering} />}
+      searchBarAccessory={
+        <FilterDropdown layout="list" setFiltering={setFiltering} />
+      }
       selectedItemId={selectedId ?? undefined}
       onSelectionChange={(value) => setSelectedId(value ?? "")}
       onSearchTextChange={setSearchText}

@@ -1,5 +1,10 @@
 import { Icon } from "@raycast/api";
-import { Drama } from "./types";
+import { mdlFetch } from "./client";
+import { AiringSchedule, Drama } from "./types";
+
+export async function fetchDramas(query: string): Promise<Drama[]> {
+  return mdlFetch<Drama[]>(`/search?q=${encodeURIComponent(query)}`);
+}
 
 export const DRAMAS: Drama[] = [
   {
@@ -23,6 +28,7 @@ export const DRAMAS: Drama[] = [
     airedYear: 2024,
     originalNetwork: "tvN",
     duration: "1 hr. 15 min.",
+    airTime: "9:00 PM",
     score: 9.1,
     mdlScore: 8,
     ranked: 5,
@@ -55,6 +61,7 @@ export const DRAMAS: Drama[] = [
     episodesWatched: 16,
     airedOn: "Mon, Tue",
     airedYear: 2024,
+    airTime: "8:30 PM",
     score: 9.0,
     mdlScore: 7,
     ranked: 8,
@@ -87,6 +94,7 @@ export const DRAMAS: Drama[] = [
     airedYear: 2024,
     originalNetwork: "tvN",
     duration: "1 hr. 5 min.",
+    airTime: "10:30 PM",
     score: 8.2,
     mdlScore: 9,
     description:
@@ -122,6 +130,7 @@ export const DRAMAS: Drama[] = [
     airedYear: 2023,
     originalNetwork: "SBS",
     duration: "1 hr. 5 min.",
+    airTime: "10:00 PM",
     score: 8.5,
     mdlScore: 6,
     ranked: 42,
@@ -158,6 +167,7 @@ export const DRAMAS: Drama[] = [
     airedYear: 2023,
     originalNetwork: "JTBC",
     duration: "1 hr. 10 min.",
+    airTime: "10:30 PM",
     score: 8.3,
     mdlScore: 10,
     watchers: 18200,
@@ -189,6 +199,7 @@ export const DRAMAS: Drama[] = [
     airedYear: 2023,
     originalNetwork: "TVING",
     duration: "45 min.",
+    airTime: "6:00 PM",
     score: 8.7,
     mdlScore: 5,
     ranked: 28,
@@ -201,5 +212,142 @@ export const DRAMAS: Drama[] = [
         link: "https://www.tving.com/contents/1YQVJ",
       },
     ],
+  },
+  {
+    id: "7",
+    icon: Icon.Video,
+    title: "20th Century Girl",
+    nativeTitle: "20세기 소녀",
+    directors: ["Bang Woo-ri"],
+    genres: ["Romance", "Coming-of-Age"],
+    tags: ["First Love", "School", "1990s"],
+    cast: ["Kim Yoo-jung", "Byeon Woo-seok"],
+    link: "https://mydramalist.com/drama/57001/20th-century-girl",
+    type: "movie",
+    status: "completed",
+    watchedStatus: "completed",
+    country: "South Korea",
+    airedYear: 2022,
+    duration: "1 hr. 47 min.",
+    airTime: "12:00 AM",
+    score: 8.6,
+    mdlScore: 9,
+    ranked: 15,
+    popularity: 8,
+    watchers: 29000,
+    description:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur pretium tincidunt lacerat.",
+    externalLink: [
+      {
+        title: "Netflix",
+        text: "20th Century Girl",
+        link: "https://www.netflix.com/title/81473619",
+      },
+    ],
+  },
+  {
+    id: "8",
+    icon: Icon.Globe,
+    title: "Juvenile Justice",
+    nativeTitle: "소년심판",
+    directors: ["Hong Jong-chan"],
+    genres: ["Drama", "Legal", "Thriller"],
+    tags: ["Juvenile Crime", "Courtroom", "Social Issues"],
+    cast: ["Kim Hye-soo", "Kim Mu-yeol"],
+    link: "https://mydramalist.com/drama/57002/juvenile-justice",
+    type: "show",
+    status: "completed",
+    watchedStatus: "watching",
+    country: "South Korea",
+    episodes: 10,
+    episodesWatched: 5,
+    airedYear: 2022,
+    originalNetwork: "Netflix",
+    duration: "50 min.",
+    airTime: "12:00 AM",
+    score: 8.8,
+    mdlScore: 7,
+    ranked: 21,
+    popularity: 14,
+    watchers: 33000,
+    description:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Excepteur sint occaecat cupidatat non proident sunt in culpa.",
+    externalLink: [
+      {
+        title: "Netflix",
+        text: "Juvenile Justice",
+        link: "https://www.netflix.com/title/81166743",
+      },
+    ],
+  },
+  {
+    id: "9",
+    icon: Icon.Video,
+    title: "Decision to Leave",
+    nativeTitle: "헤어질 결심",
+    directors: ["Park Chan-wook"],
+    genres: ["Mystery", "Romance", "Thriller"],
+    tags: ["Detective", "Forbidden Love", "Murder"],
+    cast: ["Park Hae-il", "Tang Wei"],
+    link: "https://mydramalist.com/drama/57003/decision-to-leave",
+    type: "movie",
+    status: "completed",
+    watchedStatus: "plan-to-watch",
+    country: "South Korea",
+    airedYear: 2022,
+    duration: "2 hr. 18 min.",
+    airTime: "12:00 AM",
+    score: 8.4,
+    mdlScore: 6,
+    ranked: 37,
+    popularity: 19,
+    watchers: 21000,
+    description:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam libero tempore cum soluta nobis est eligendi optio.",
+    externalLink: [
+      {
+        title: "MUBI",
+        text: "Decision to Leave",
+        link: "https://mubi.com/films/decision-to-leave",
+      },
+    ],
+  },
+];
+
+export const AIRING: AiringSchedule[] = [
+  {
+    day: "monday",
+    date: "2026-03-16",
+    dramas: [DRAMAS[0], DRAMAS[1]],
+  },
+  {
+    day: "tuesday",
+    date: "2026-03-17",
+    dramas: [DRAMAS[2]],
+  },
+  {
+    day: "wednesday",
+    date: "2026-03-18",
+    dramas: [DRAMAS[3], DRAMAS[4]],
+  },
+  {
+    day: "thursday",
+    date: "2026-03-19",
+    dramas: [DRAMAS[5]],
+  },
+  {
+    day: "friday",
+    date: "2026-03-20",
+    dramas: [DRAMAS[6]],
+  },
+  {
+    day: "saturday",
+    date: "2026-03-21",
+    dramas: [DRAMAS[7], DRAMAS[8]],
+  },
+  {
+    day: "sunday",
+    date: "2026-03-22",
+    dramas: [],
   },
 ];

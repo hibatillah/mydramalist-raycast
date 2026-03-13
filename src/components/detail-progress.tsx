@@ -9,7 +9,7 @@ import {
 import { FormValidation, useForm } from "@raycast/utils";
 import { updateProgress } from "../lib/actions";
 import { RATE_ASPECTS, RATE_VALUES, WATCHLIST_STATUS } from "../lib/constants";
-import { Drama, ProgressForm, WatchlistStatus } from "../lib/types";
+import { Drama, ProgressForm } from "../lib/types";
 
 export function DetailProgress({ data }: { data: Drama }) {
   const { pop } = useNavigation();
@@ -22,7 +22,7 @@ export function DetailProgress({ data }: { data: Drama }) {
       });
 
       try {
-        await updateProgress(values);
+        await updateProgress(data.id, values);
         pop();
 
         toast.style = Toast.Style.Success;
@@ -45,7 +45,7 @@ export function DetailProgress({ data }: { data: Drama }) {
       whatYouLikeMost: data.tags ?? [],
       notes: "",
     },
-  }); 
+  });
 
   return (
     <Form

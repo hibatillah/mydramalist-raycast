@@ -19,39 +19,30 @@ import { sleep } from "./lib/utils";
 
 type SetFiltering = (filtering: WatchlistFilter) => void;
 
-function ListFilter({ setFiltering }: { setFiltering: SetFiltering }) {
-  return (
-    <List.Dropdown
-      tooltip="Filter Search"
-      storeValue
-      onChange={(value) => setFiltering(value as WatchlistFilter)}>
-      <List.Dropdown.Item value="all" title="All" />
-      <List.Dropdown.Item value="watching" title="Currently Watching" />
-      <List.Dropdown.Item value="completed" title="Completed" />
-      <List.Dropdown.Item value="on-hold" title="On Hold" />
-      <List.Dropdown.Item value="dropped" title="Dropped" />
-      <List.Dropdown.Item value="plan-to-watch" title="Plan to Watch" />
-      <List.Dropdown.Item value="undecided" title="Undecided" />
-      <List.Dropdown.Item value="not-interested" title="Not Interested" />
-    </List.Dropdown>
-  );
-}
+function FilterDropdown({
+  layout,
+  setFiltering,
+}: {
+  layout: "list" | "grid";
+  setFiltering: SetFiltering;
+}) {
+  const Comp = layout === "grid" ? Grid : List;
 
-function GridFilter({ setFiltering }: { setFiltering: SetFiltering }) {
   return (
-    <Grid.Dropdown
+    <Comp.Dropdown
       tooltip="Filter Search"
+      onChange={(value) => setFiltering(value as WatchlistFilter)}
       storeValue
-      onChange={(value) => setFiltering(value as WatchlistFilter)}>
-      <Grid.Dropdown.Item value="all" title="All" />
-      <Grid.Dropdown.Item value="watching" title="Currently Watching" />
-      <Grid.Dropdown.Item value="completed" title="Completed" />
-      <Grid.Dropdown.Item value="on-hold" title="On Hold" />
-      <Grid.Dropdown.Item value="dropped" title="Dropped" />
-      <Grid.Dropdown.Item value="plan-to-watch" title="Plan to Watch" />
-      <Grid.Dropdown.Item value="undecided" title="Undecided" />
-      <Grid.Dropdown.Item value="not-interested" title="Not Interested" />
-    </Grid.Dropdown>
+      throttle>
+      <Comp.Dropdown.Item value="all" title="All" />
+      <Comp.Dropdown.Item value="watching" title="Currently Watching" />
+      <Comp.Dropdown.Item value="completed" title="Completed" />
+      <Comp.Dropdown.Item value="on-hold" title="On Hold" />
+      <Comp.Dropdown.Item value="dropped" title="Dropped" />
+      <Comp.Dropdown.Item value="plan-to-watch" title="Plan to Watch" />
+      <Comp.Dropdown.Item value="undecided" title="Undecided" />
+      <Comp.Dropdown.Item value="not-interested" title="Not Interested" />
+    </Comp.Dropdown>
   );
 }
 
@@ -87,9 +78,13 @@ function ItemActions({
         <Action.CopyToClipboard
           title="Copy Page Link"
           content={data.link}
-          shortcut={Keyboard.Shortcut.Common.Copy}
+          shortcut={Keyboard.Shortcut.Common.CopyPath}
         />
-        <Action.CopyToClipboard title="Copy Title" content={data.title} />
+        <Action.CopyToClipboard
+          title="Copy Title"
+          content={data.title}
+          shortcut={Keyboard.Shortcut.Common.CopyName}
+        />
       </ActionPanel.Section>
       <ActionPanel.Section>
         <Action.OpenInBrowser
@@ -116,12 +111,14 @@ function ItemActions({
   );
 }
 
-function ListItem({
+function WatchlistItem({
   item,
+  layout,
   selected,
   revalidate,
 }: {
   item: Drama;
+  layout: "list" | "grid";
   selected?: Drama;
   revalidate: ReturnType<typeof usePromise>["revalidate"];
 }) {
@@ -149,6 +146,23 @@ function ListItem({
     status,
   ]);
 
+  const actions = (
+    <ItemActions data={item} selected={selected} revalidate={revalidate} />
+  );
+
+  if (layout === "grid") {
+    return (
+      <Grid.Item
+        key={item.id}
+        id={item.id}
+        title={item.title}
+        subtitle={subtitle}
+        content={item.icon}
+        actions={actions}
+      />
+    );
+  }
+
   return (
     <List.Item
       key={item.id}
@@ -157,65 +171,15 @@ function ListItem({
       title={item.title}
       subtitle={subtitle}
       accessories={[
-        {
-          icon: Icon.Tag,
-          text: type,
-        },
-        {
-          icon: Icon.Calendar,
-          text: item.airedYear?.toString() ?? "N/A",
-        },
+        { icon: Icon.Tag, text: type },
+        { icon: Icon.Calendar, text: item.airedYear?.toString() ?? "N/A" },
         {
           icon: Icon.Star,
           text: item.score?.toString() ?? "0",
           tooltip: "Your Score",
         },
       ]}
-      actions={
-        <ItemActions data={item} selected={selected} revalidate={revalidate} />
-      }
-    />
-  );
-}
-
-function GridItem({
-  item,
-  selected,
-  revalidate,
-}: {
-  item: Drama;
-  selected?: Drama;
-  revalidate: ReturnType<typeof usePromise>["revalidate"];
-}) {
-  const status = useMemo(
-    () =>
-      item.watchedStatus.charAt(0).toUpperCase() + item.watchedStatus.slice(1),
-    [item.watchedStatus],
-  );
-
-  const subtitle = useMemo(() => {
-    if (item.type === "movie" || item.watchedStatus !== "watching") {
-      return status;
-    }
-    return `Episodes ${item.episodesWatched ?? 0} / ${item.episodes}`;
-  }, [
-    item.type,
-    item.watchedStatus,
-    item.episodesWatched,
-    item.episodes,
-    status,
-  ]);
-
-  return (
-    <Grid.Item
-      key={item.id}
-      id={item.id}
-      title={item.title}
-      subtitle={subtitle}
-      content={item.icon}
-      actions={
-        <ItemActions data={item} selected={selected} revalidate={revalidate} />
-      }
+      actions={actions}
     />
   );
 }
@@ -263,47 +227,57 @@ export default function Command() {
     [selectedId, data],
   );
 
-  return layout === "grid" ? (
-    <Grid
-      aspectRatio="3/4"
-      columns={GRID_LAYOUT_SIZE[gridSize]}
-      searchBarPlaceholder={placeholder}
-      searchBarAccessory={<GridFilter setFiltering={setFiltering} />}
-      selectedItemId={selectedId ?? undefined}
-      onSelectionChange={(value) => setSelectedId(value ?? "")}
-      onSearchTextChange={setSearchText}
-      pagination={pagination}>
-      {data && data.length > 0 ? (
-        data.map((item) => (
-          <GridItem
-            key={item.id}
-            item={item}
-            selected={selectedItem}
-            revalidate={revalidate}
+  if (layout === "grid") {
+    return (
+      <Grid
+        aspectRatio="3/4"
+        columns={GRID_LAYOUT_SIZE[gridSize]}
+        searchBarPlaceholder={placeholder}
+        searchBarAccessory={
+          <FilterDropdown layout="grid" setFiltering={setFiltering} />
+        }
+        selectedItemId={selectedId ?? undefined}
+        onSelectionChange={(value) => setSelectedId(value ?? "")}
+        onSearchTextChange={setSearchText}
+        pagination={pagination}>
+        {data && data.length > 0 ? (
+          data.map((item) => (
+            <WatchlistItem
+              key={item.id}
+              item={item}
+              layout="grid"
+              selected={selectedItem}
+              revalidate={revalidate}
+            />
+          ))
+        ) : (
+          <Grid.EmptyView
+            icon={Icon.Tray}
+            title={emptyTitle}
+            description={emptyDescription}
           />
-        ))
-      ) : (
-        <Grid.EmptyView
-          icon={Icon.Tray}
-          title={emptyTitle}
-          description={emptyDescription}
-        />
-      )}
-    </Grid>
-  ) : (
+        )}
+      </Grid>
+    );
+  }
+
+  return (
     <List
       isLoading={isLoading}
       searchBarPlaceholder={placeholder}
-      searchBarAccessory={<ListFilter setFiltering={setFiltering} />}
+      searchBarAccessory={
+        <FilterDropdown layout="list" setFiltering={setFiltering} />
+      }
       selectedItemId={selectedId ?? undefined}
       onSelectionChange={(value) => setSelectedId(value ?? "")}
       onSearchTextChange={setSearchText}
       pagination={pagination}>
       {data && data.length > 0 ? (
         data.map((item) => (
-          <ListItem
+          <WatchlistItem
             key={item.id}
             item={item}
+            layout="list"
             selected={selectedItem}
             revalidate={revalidate}
           />

@@ -65,6 +65,7 @@ export function DetailDrama({ data }: { data: Drama }) {
   return (
     <Detail
       markdown={markdown}
+      navigationTitle={data.title}
       metadata={
         <Detail.Metadata>
           <Detail.Metadata.TagList title="Type">
