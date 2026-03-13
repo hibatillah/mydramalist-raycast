@@ -7,16 +7,17 @@ import {
   Keyboard,
   List,
 } from "@raycast/api";
-import { useCachedState, useFetch, usePromise } from "@raycast/utils";
+import { useCachedState, usePromise } from "@raycast/utils";
 import { useMemo, useState } from "react";
 import { DetailDrama } from "./components/detail-page";
 import { DetailProgress } from "./components/detail-progress";
 import { GRID_LAYOUT_SIZE, PAGE_SIZE } from "./lib/constants";
 import { DRAMAS } from "./lib/data";
 import { Drama, SearchFilter } from "./lib/types";
-import { sleep } from "./lib/utils";
+import { capitalize, sleep } from "./lib/utils";
 
 type SetFiltering = (filtering: SearchFilter) => void;
+type Revalidate = () => Promise<Drama[]>;
 
 function FilterDropdown({
   layout,
@@ -48,6 +49,18 @@ function FilterDropdown({
   );
 }
 
+function EmptyView({ layout }: { layout: "list" | "grid" }) {
+  const Comp = layout === "grid" ? Grid : List;
+
+  return (
+    <Comp.EmptyView
+      icon={Icon.Tray}
+      title="No drama or movie found"
+      description="Try searching for other dramas, movies and actors..."
+    />
+  );
+}
+
 function ItemActions({
   data,
   selected,
@@ -55,7 +68,7 @@ function ItemActions({
 }: {
   data: Drama;
   selected?: Drama;
-  revalidate: ReturnType<typeof useFetch>["revalidate"];
+  revalidate: Revalidate;
 }) {
   return (
     <ActionPanel>
@@ -90,10 +103,52 @@ function ItemActions({
           title="Refresh Data"
           icon={Icon.RotateClockwise}
           shortcut={Keyboard.Shortcut.Common.Refresh}
-          onAction={() => revalidate()}
+          onAction={revalidate}
         />
       </ActionPanel.Section>
     </ActionPanel>
+  );
+}
+
+function ListItem({
+  item,
+  selectedItem,
+  revalidate,
+}: {
+  item: Drama;
+  selectedItem?: Drama;
+  revalidate: Revalidate;
+}) {
+  const type = useMemo(() => {
+    if (!item.episodes) return capitalize(item.type);
+    return `${item.episodes} Episodes`;
+  }, [item.type, item.episodes]);
+
+  return (
+    <List.Item
+      key={item.id}
+      id={item.id}
+      icon={item.icon}
+      title={item.title}
+      subtitle={`${item.country} • ${item.airedYear} • ${type}`}
+      accessories={[
+        {
+          icon: Icon.Clock,
+          text: item.duration ?? "N/A",
+        },
+        {
+          icon: Icon.Star,
+          text: item.score?.toString() ?? "0",
+        },
+      ]}
+      actions={
+        <ItemActions
+          data={item}
+          selected={selectedItem}
+          revalidate={revalidate}
+        />
+      }
+    />
   );
 }
 
@@ -101,11 +156,7 @@ export default function Command() {
   const preferences = getPreferenceValues<Preferences.SearchDrama>();
   const layout = preferences.searchViewLayout;
   const gridSize = preferences.gridLayoutSize;
-
   const placeholder = "Find dramas, movies, actors and more...";
-  const emptyTitle = "No drama or movie found";
-  const emptyDescription =
-    "Try searching for other dramas, movies and actors...";
 
   const [filtering, setFiltering] = useState<SearchFilter>("all");
   const [searchText, setSearchText] = useCachedState<string>(
@@ -117,20 +168,17 @@ export default function Command() {
     (searchText: string, filtering: SearchFilter) =>
       async (options: { page: number }) => {
         await sleep();
-        const data = DRAMAS;
         // const { data } = useFetch<Drama[]>(
         //   "https://api.mydramalist.com",
         // );
 
-        const filtered = data
-          .filter((item) =>
-            item.title.toLowerCase().includes(searchText.toLowerCase()),
-          )
-          .filter((item) =>
-            filtering !== "all"
-              ? item.type === filtering || item.status === filtering
-              : item,
-          );
+        const filtered = DRAMAS.filter((item) =>
+          item.title.toLowerCase().includes(searchText.toLowerCase()),
+        ).filter((item) =>
+          filtering !== "all"
+            ? item.type === filtering || item.status === filtering
+            : item,
+        );
 
         return { data: filtered, hasMore: options.page < PAGE_SIZE };
       },
@@ -143,45 +191,45 @@ export default function Command() {
     [selectedId, data],
   );
 
-  return layout === "grid" ? (
-    <Grid
-      isLoading={isLoading}
-      aspectRatio="3/4"
-      columns={GRID_LAYOUT_SIZE[gridSize]}
-      searchBarPlaceholder={placeholder}
-      searchBarAccessory={
-        <FilterDropdown layout="grid" setFiltering={setFiltering} />
-      }
-      selectedItemId={selectedId ?? undefined}
-      onSelectionChange={(value) => setSelectedId(value ?? "")}
-      onSearchTextChange={setSearchText}
-      pagination={pagination}>
-      {data && data.length > 0 ? (
-        data.map((item) => (
-          <Grid.Item
-            key={item.id}
-            id={item.id}
-            title={item.title}
-            subtitle={`${item.airedYear} • ${item.country} `}
-            content={item.icon}
-            actions={
-              <ItemActions
-                data={item}
-                selected={selectedItem}
-                revalidate={revalidate}
-              />
-            }
-          />
-        ))
-      ) : (
-        <Grid.EmptyView
-          icon={Icon.Tray}
-          title={emptyTitle}
-          description={emptyDescription}
-        />
-      )}
-    </Grid>
-  ) : (
+  if (layout === "grid") {
+    return (
+      <Grid
+        isLoading={isLoading}
+        aspectRatio="3/4"
+        columns={GRID_LAYOUT_SIZE[gridSize]}
+        searchBarPlaceholder={placeholder}
+        searchBarAccessory={
+          <FilterDropdown layout="grid" setFiltering={setFiltering} />
+        }
+        selectedItemId={selectedId ?? undefined}
+        onSelectionChange={(value) => setSelectedId(value ?? "")}
+        onSearchTextChange={setSearchText}
+        pagination={pagination}>
+        {data && data.length > 0 ? (
+          data.map((item) => (
+            <Grid.Item
+              key={item.id}
+              id={item.id}
+              title={item.title}
+              subtitle={`${item.airedYear} • ${item.country}`}
+              content={item.icon}
+              actions={
+                <ItemActions
+                  data={item}
+                  selected={selectedItem}
+                  revalidate={revalidate}
+                />
+              }
+            />
+          ))
+        ) : (
+          <EmptyView layout={layout} />
+        )}
+      </Grid>
+    );
+  }
+
+  return (
     <List
       isLoading={isLoading}
       searchBarPlaceholder={placeholder}
@@ -194,37 +242,15 @@ export default function Command() {
       pagination={pagination}>
       {data && data.length > 0 ? (
         data.map((item) => (
-          <List.Item
+          <ListItem
             key={item.id}
-            id={item.id}
-            icon={item.icon}
-            title={item.title}
-            subtitle={`${item.country} • ${item.airedYear} ${item.type !== "movie" ? `• ${item.episodes} episodes` : ""}`}
-            accessories={[
-              {
-                icon: Icon.Clock,
-                text: item.duration ?? "N/A",
-              },
-              {
-                icon: Icon.Star,
-                text: item.score?.toString() ?? "0",
-              },
-            ]}
-            actions={
-              <ItemActions
-                data={item}
-                selected={selectedItem}
-                revalidate={revalidate}
-              />
-            }
+            item={item}
+            selectedItem={selectedItem}
+            revalidate={revalidate}
           />
         ))
       ) : (
-        <List.EmptyView
-          icon={Icon.Tray}
-          title={emptyTitle}
-          description={emptyDescription}
-        />
+        <EmptyView layout={layout} />
       )}
     </List>
   );

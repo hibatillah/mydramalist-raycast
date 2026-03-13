@@ -12,12 +12,13 @@ import { useMemo, useState } from "react";
 import { DetailDrama } from "./components/detail-page";
 import { DetailProgress } from "./components/detail-progress";
 import { removeFromWatchlist } from "./lib/actions";
-import { GRID_LAYOUT_SIZE, PAGE_SIZE } from "./lib/constants";
+import { GRID_LAYOUT_SIZE, PAGE_SIZE, WATCHLIST_STATUS } from "./lib/constants";
 import { DRAMAS } from "./lib/data";
-import { Drama, WatchlistFilter } from "./lib/types";
-import { sleep } from "./lib/utils";
+import { Drama, WatchlistFilter, WatchlistStatus } from "./lib/types";
+import { capitalize, sleep } from "./lib/utils";
 
 type SetFiltering = (filtering: WatchlistFilter) => void;
+type Revalidate = () => Promise<Drama[]>;
 
 function FilterDropdown({
   layout,
@@ -46,6 +47,18 @@ function FilterDropdown({
   );
 }
 
+function EmptyView({ layout }: { layout: "list" | "grid" }) {
+  const Comp = layout === "grid" ? Grid : List;
+
+  return (
+    <Comp.EmptyView
+      icon={Icon.Tray}
+      title="No drama or movie in this list"
+      description="Try adding some dramas to your watchlist"
+    />
+  );
+}
+
 function ItemActions({
   data,
   selected,
@@ -53,7 +66,7 @@ function ItemActions({
 }: {
   data: Drama;
   selected?: Drama;
-  revalidate: ReturnType<typeof usePromise>["revalidate"];
+  revalidate: Revalidate;
 }) {
   return (
     <ActionPanel>
@@ -95,7 +108,7 @@ function ItemActions({
           title="Refresh Watchlist"
           icon={Icon.RotateClockwise}
           shortcut={Keyboard.Shortcut.Common.Refresh}
-          onAction={() => revalidate()}
+          onAction={revalidate}
         />
       </ActionPanel.Section>
       <ActionPanel.Section>
@@ -120,31 +133,20 @@ function WatchlistItem({
   item: Drama;
   layout: "list" | "grid";
   selected?: Drama;
-  revalidate: ReturnType<typeof usePromise>["revalidate"];
+  revalidate: Revalidate;
 }) {
-  const type = useMemo(
-    () => item.type.charAt(0).toUpperCase() + item.type.slice(1),
-    [item.type],
-  );
-
-  const status = useMemo(
-    () =>
-      item.watchedStatus.charAt(0).toUpperCase() + item.watchedStatus.slice(1),
-    [item.watchedStatus],
-  );
-
   const subtitle = useMemo(() => {
-    if (item.type === "movie" || item.watchedStatus !== "watching") {
-      return status;
+    const inProgress: WatchlistStatus[] = ["watching", "on-hold", "dropped"];
+
+    if (!item.episodes || !inProgress.includes(item.watchedStatus)) {
+      const status = WATCHLIST_STATUS.find(
+        (status) => status.value === item.watchedStatus,
+      );
+      return status?.title;
     }
+
     return `Episodes ${item.episodesWatched ?? 0} / ${item.episodes}`;
-  }, [
-    item.type,
-    item.watchedStatus,
-    item.episodesWatched,
-    item.episodes,
-    status,
-  ]);
+  }, [item.type, item.watchedStatus, item.episodesWatched, item.episodes]);
 
   const actions = (
     <ItemActions data={item} selected={selected} revalidate={revalidate} />
@@ -171,7 +173,7 @@ function WatchlistItem({
       title={item.title}
       subtitle={subtitle}
       accessories={[
-        { icon: Icon.Tag, text: type },
+        { icon: Icon.Tag, text: capitalize(item.type) },
         { icon: Icon.Calendar, text: item.airedYear?.toString() ?? "N/A" },
         {
           icon: Icon.Star,
@@ -188,10 +190,7 @@ export default function Command() {
   const preferences = getPreferenceValues<Preferences.ManageWatchlist>();
   const layout = preferences.watchlistViewLayout;
   const gridSize = preferences.gridLayoutSize;
-
   const placeholder = "Find dramas and movies from your watchlist";
-  const emptyTitle = "No drama or movie in this list";
-  const emptyDescription = "Try adding some dramas to your watchlist";
 
   const [filtering, setFiltering] = useState<WatchlistFilter>("all");
   const [searchText, setSearchText] = useCachedState<string>(
@@ -203,18 +202,15 @@ export default function Command() {
     (searchText: string, filtering: WatchlistFilter) =>
       async (options: { page: number }) => {
         await sleep();
-        const data = DRAMAS;
         // const { data } = useFetch<Drama[]>(
         //   "https://api.mydramalist.com",
         // );
 
-        const filtered = data
-          .filter((item) =>
-            item.title.toLowerCase().includes(searchText.toLowerCase()),
-          )
-          .filter((item) =>
-            filtering !== "all" ? item.watchedStatus === filtering : item,
-          );
+        const filtered = DRAMAS.filter((item) =>
+          item.title.toLowerCase().includes(searchText.toLowerCase()),
+        ).filter((item) =>
+          filtering !== "all" ? item.watchedStatus === filtering : item,
+        );
 
         return { data: filtered, hasMore: options.page < PAGE_SIZE };
       },
@@ -251,11 +247,7 @@ export default function Command() {
             />
           ))
         ) : (
-          <Grid.EmptyView
-            icon={Icon.Tray}
-            title={emptyTitle}
-            description={emptyDescription}
-          />
+          <EmptyView layout={layout} />
         )}
       </Grid>
     );
@@ -283,11 +275,7 @@ export default function Command() {
           />
         ))
       ) : (
-        <List.EmptyView
-          icon={Icon.Tray}
-          title={emptyTitle}
-          description={emptyDescription}
-        />
+        <EmptyView layout={layout} />
       )}
     </List>
   );

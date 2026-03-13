@@ -41,9 +41,13 @@ function ItemActions({ data }: { data: Drama }) {
         <Action.CopyToClipboard
           title="Copy Page Link"
           content={data.link}
-          shortcut={Keyboard.Shortcut.Common.Copy}
+          shortcut={Keyboard.Shortcut.Common.CopyPath}
         />
-        <Action.CopyToClipboard title="Copy Title" content={data.title} />
+        <Action.CopyToClipboard
+          title="Copy Title"
+          content={data.title}
+          shortcut={Keyboard.Shortcut.Common.CopyName}
+        />
       </ActionPanel.Section>
     </ActionPanel>
   );
@@ -66,6 +70,7 @@ export function DetailDrama({ data }: { data: Drama }) {
     <Detail
       markdown={markdown}
       navigationTitle={data.title}
+      actions={<ItemActions data={data} />}
       metadata={
         <Detail.Metadata>
           <Detail.Metadata.TagList title="Type">
@@ -87,11 +92,10 @@ export function DetailDrama({ data }: { data: Drama }) {
               text={data.episodes?.toString() ?? "N/A"}
             />
           )}
-          {data.aired ? (
-            <Detail.Metadata.Label title="Aired" text={data.aired ?? "N/A"} />
-          ) : (
-            <Detail.Metadata.Label title="Airs" text={data.airs ?? "N/A"} />
-          )}
+          <Detail.Metadata.Label
+            title={data.aired ? "Aired" : "Airs"}
+            text={data.aired ? data.aired : (data.airs ?? "N/A")}
+          />
           {data.type !== "movie" && data.airedOn && (
             <Detail.Metadata.Label
               title="Aired On"
@@ -117,7 +121,6 @@ export function DetailDrama({ data }: { data: Drama }) {
           )}
         </Detail.Metadata>
       }
-      actions={<ItemActions data={data} />}
     />
   );
 }

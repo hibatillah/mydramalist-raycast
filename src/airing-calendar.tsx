@@ -1,13 +1,21 @@
 import { Action, ActionPanel, Icon, Keyboard, List } from "@raycast/api";
 import { useCachedState, usePromise } from "@raycast/utils";
+import { format } from "date-fns";
 import { useMemo, useState } from "react";
 import { DetailDrama } from "./components/detail-page";
 import { DetailProgress } from "./components/detail-progress";
 import { AIRING } from "./lib/data";
-import { AiringFilter, AiringSchedule, Drama } from "./lib/types";
-import { sleep } from "./lib/utils";
+import { AiringFilter, DaysOfWeek, Drama } from "./lib/types";
+import { capitalize, sleep } from "./lib/utils";
 
 type SetAiringFiltering = (filtering: AiringFilter) => void;
+type Revalidate = () => Promise<
+  {
+    dramas: Drama[];
+    day: DaysOfWeek;
+    date: string;
+  }[]
+>;
 
 function ListFilter({ setFiltering }: { setFiltering: SetAiringFiltering }) {
   return (
@@ -41,7 +49,7 @@ function ItemActions({
 }: {
   data: Drama;
   selected?: Drama;
-  revalidate: ReturnType<typeof usePromise>["revalidate"];
+  revalidate: Revalidate;
 }) {
   return (
     <ActionPanel>
@@ -76,7 +84,7 @@ function ItemActions({
           title="Refresh Data"
           icon={Icon.RotateClockwise}
           shortcut={Keyboard.Shortcut.Common.Refresh}
-          onAction={() => revalidate()}
+          onAction={revalidate}
         />
       </ActionPanel.Section>
     </ActionPanel>
@@ -84,10 +92,6 @@ function ItemActions({
 }
 
 export default function Command() {
-  const placeholder = "Find dramas airing this week";
-  const emptyTitle = "No dramas airing this week";
-  const emptyDescription = "Try searching for other dramas airing this week...";
-
   const [filtering, setFiltering] = useState<AiringFilter>("all");
   const [searchText, setSearchText] = useCachedState<string>(
     "airing-calendar",
@@ -117,25 +121,16 @@ export default function Command() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedItem = useMemo(() => {
     if (!data) return undefined;
+
     return data
       .flatMap((s) => s.dramas)
       .find((item: Drama) => item.id === selectedId);
   }, [selectedId, data]);
 
-  const formatDay = (day: AiringSchedule["day"]) =>
-    day.charAt(0).toUpperCase() + day.slice(1);
-
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString("en-US", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-
   return (
     <List
       isLoading={isLoading}
-      searchBarPlaceholder={placeholder}
+      searchBarPlaceholder="Find dramas airing this week"
       searchBarAccessory={<ListFilter setFiltering={setFiltering} />}
       selectedItemId={selectedId ?? undefined}
       onSelectionChange={(value) => setSelectedId(value ?? "")}
@@ -144,15 +139,15 @@ export default function Command() {
         data.map((schedule) => (
           <List.Section
             key={schedule.day}
-            title={formatDay(schedule.day)}
-            subtitle={formatDate(schedule.date)}>
+            title={capitalize(schedule.day)}
+            subtitle={format(new Date(schedule.date), "MMMM d, yyyy")}>
             {schedule.dramas.map((item) => (
               <List.Item
                 key={item.id}
                 id={item.id}
                 icon={item.icon}
                 title={item.title}
-                subtitle={`Episodes ${item.episodes}`}
+                subtitle={item.episodes ? `Episodes ${item.episodes}` : capitalize(item.type)}
                 accessories={[
                   {
                     icon: Icon.Flag,
@@ -174,8 +169,8 @@ export default function Command() {
       ) : (
         <List.EmptyView
           icon={Icon.Tray}
-          title={emptyTitle}
-          description={emptyDescription}
+          title="No dramas airing this week"
+          description="Try searching for other dramas airing this week..."
         />
       )}
     </List>

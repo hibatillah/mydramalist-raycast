@@ -3,16 +3,16 @@
   "name": "my-drama-list",
   "title": "MyDramaList",
   "description": "Search and manage drama watchlist",
-  "icon": "extension-icon.png",
+  "icon": "extension_icon.png",
   "license": "MIT",
   "preferences": [
     {
       "name": "apiKey",
       "title": "API Key",
-      "description": "Your MyDramaList API key",
+      "description": "Your MyDramaList account API key",
       "type": "password",
       "required": true,
-      "placeholder": "Enter your MyDramaList API key"
+      "placeholder": "Enter your API key"
     },
     {
       "name": "gridLayoutSize",
@@ -116,7 +116,8 @@
   ],
   "dependencies": {
     "@raycast/api": "^1.103.0",
-    "@raycast/utils": "^2.2.1"
+    "@raycast/utils": "^2.2.1",
+    "date-fns": "^4.1.0"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^2.0.4",

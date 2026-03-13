@@ -56,6 +56,7 @@ export const DRAMAS: Drama[] = [
     type: "drama",
     status: "completed",
     watchedStatus: "plan-to-watch",
+    duration: "1 hr. 15 min.",
     country: "South Korea",
     episodes: 16,
     episodesWatched: 16,
